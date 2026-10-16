@@ -27,14 +27,10 @@ jobs:
       - name: Run Pluto TV Provider Script
         run: python pluto_provider.py
 
-      - name: Commit and Push Changes
+      -       - name: Commit and Push Changes
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
           git add --all
-          if ! git diff --cached --quiet; then
-            git commit -m "Automated update of Pluto TV playlist"
-            git push origin main
-          else
-            echo "No changes detected in the playlist."
-          fi
+          git commit -m "Forced update of Pluto TV playlist" --allow-empty
+          git push origin main
