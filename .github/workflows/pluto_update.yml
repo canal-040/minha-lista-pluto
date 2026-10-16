@@ -33,5 +33,6 @@ jobs:
           git add --all
           git commit -m "Forced update of Pluto TV playlist" --allow-empty
           git push origin main
-Pluto TV playlist" --allow-empty
+     Pluto TV playlist" --allow-empty
+          # teste
           git push origin main
