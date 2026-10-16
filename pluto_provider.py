@@ -1,53 +1,64 @@
 import json
+import os
+import re
+import sys
 import requests
 
-def executar_conversao():
-    print("Iniciando a captura de canais da Pluto TV...")
+def get_session(region):
+    # O desenvolvedor usa um cabeçalho completo de navegador para evitar o Erro 403
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Origin': 'https://pluto.tv',
+        'Referer': 'https://pluto.tv/'
     }
-    
-    url_boot = "https://pluto.tv"
-    
+    # Sistema inteligente que monta a requisição baseado na região escolhida
+    url = f"https://pluto.tv{region.upper()}&country={region.upper()}"
     try:
-        response_boot = requests.get(url_boot, headers=headers)
-        if response_boot.status_code != 200:
-            print("Falha ao se conectar com o servidor de boot.")
-            return
-            
-        token_jwt = response_boot.json().get("session", {}).get("jwt", "")
-        if not token_jwt:
-            print("Token JWT nao encontrado.")
-            return
-            
-        url_api = "https://pluto.tv"
-        
-        response_api = requests.get(url_api, headers=headers)
-        dados_canais = response_api.json()
-        
-        with open("pluto_brasil.m3u", "w", encoding="utf-8") as f:
-            f.write("#EXTM3U\n")
-            
-            for canal in dados_canais:
-                if not canal.get("id") or not canal.get("name"):
-                    continue
-                    
-                id_canal = canal["id"]
-                nome_canal = canal["name"]
-                categoria = canal.get("category", "Geral").capitalize() if canal.get("category") else "Geral"
-                
-                images = canal.get("images", [])
-                logo = images.get("path", "") if images else ""
-                
-                f.write(f'#EXTINF:-1 tvg-id="{id_canal}" tvg-logo="{logo}" group-title="{categoria}", {nome_canal}\n')
-                f.write('#EXTVLCOPT:http-user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"\n')
-                
-                url_stream = f"https://pluto.tv{id_canal}/master.m3u8?appName=web&deviceMake=Chrome&deviceType=web&jwt={token_jwt}\n"
-                f.write(url_stream)
-                
-        print("Arquivo pluto_brasil.m3u gerado com sucesso!")
+        response = requests.get(url, headers=headers, timeout=15)
+        if response.status_code == 200:
+            data = response.json()
+            return data.get('session', {}).get('jwt', None)
     except Exception as e:
-        print(f"Erro durante a execucao: {e}")
+        print(f"Erro ao obter sessao para {region}: {e}")
+    return None
+
+def generate_playlist(region, jwt_token):
+    if not jwt_token:
+        return
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+    url = f"https://pluto.tv{region.upper()}&lang=pt"
+    try:
+        res = requests.get(url, headers=headers, timeout=15)
+        channels = res.json()
+    except Exception as e:
+        print(f"Erro ao buscar canais de {region}: {e}")
+        return
+
+    filename = f"pluto_{region.lower()}.m3u"
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write("#EXTM3U\n")
+        for channel in channels:
+            if not channel.get('id') or not channel.get('name'):
+                continue
+            cid = channel['id']
+            name = channel['name']
+            category = channel.get('category', 'Geral').capitalize()
+            images = channel.get('images', [])
+            logo = images.get('path', '') if images else ""
+            
+            f.write(f'#EXTINF:-1 tvg-id="{cid}" tvg-logo="{logo}" group-title="{category}", {name}\n')
+            # Comando oficial que força o VLC a injetar o disfarce de navegador automaticamente
+            f.write('#EXTVLCOPT:http-user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"\n')
+            f.write(f"https://pluto.tv{cid}/master.m3u8?appName=web&deviceMake=Chrome&deviceType=web&jwt={jwt_token}\n")
+    print(f"Lista {filename} criada com sucesso.")
 
 if __name__ == "__main__":
-    executar_conversao()
+    # O desenvolvedor configurou para o script gerar listas de várias regiões
+    regioes = ['br', 'us', 'mx'] 
+    for r in regioes:
+        token = get_session(r)
+        if token:
+            generate_playlist(r, token)
