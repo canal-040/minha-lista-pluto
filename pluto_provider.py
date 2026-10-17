@@ -1,83 +1,55 @@
-import json
 import os
-import sys
+import re
 import requests
 
-def get_channels(region):
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-    }
-    url = f"https://pluto.tv{region.lower()}"
-    try:
-        response = requests.get(url, headers=headers, timeout=15)
-        if response.status_code == 200:
-            data = response.json()
-            if isinstance(data, dict):
-                return data.get('data', [])
-            elif isinstance(data, list):
-                return data
-    except Exception as e:
-        print(f"Erro ao buscar dados para {region}: {e}")
-    return []
-
-def generate_playlist(region):
-    channels = get_channels(region)
-    if not channels:
-        print(f"Nenhum canal localizado para {region}.")
-        return
-
-    filename = f"pluto_{region.lower()}.m3u"
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
-        for channel in channels:
-            if not isinstance(channel, dict):
-                continue
-            cid = channel.get('id')
-            name = channel.get('name')
-            if not cid or not name:
-                continue
+def download_and_split():
+    # Fonte oficial de dados estável que o outro repositório utiliza
+    regions = ['ar', 'br', 'ca', 'cl', 'de', 'dk', 'es', 'fi', 'fr', 'gb', 'it', 'mx', 'no', 'se', 'us']
+    
+    print("Iniciando o download e processamento das listas...")
+    
+    # Criar uma lista para juntar todos os canais depois (Master Playlist)
+    master_channels = []
+    
+    for region in regions:
+        url = f"https://githubusercontent.com{region}.m3u8"
+        try:
+            response = requests.get(url, timeout=20)
+            if response.status_code == 200:
+                lines = response.text.splitlines()
+                regional_channels = []
                 
-            category = channel.get('category', 'Geral').capitalize()
-            
-            logo = ""
-            for img in channel.get('images', []):
-                if img.get('type') in ['logo', 'channel-logo']:
-                    logo = img.get('url', '')
-                    break
-            
-            stream_url = ""
-            for st in channel.get('stm', []):
-                if st.get('typ') == 'hls':
-                    stream_url = st.get('url', '')
-                    break
-            
-            if stream_url:
-                f.write(f'#EXTINF:-1 tvg-id="{cid}" tvg-logo="{logo}" group-title="{category}", {name}\n')
-                f.write('#EXTVLCOPT:http-user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"\n')
-                f.write(f"{stream_url}\n")
-    print(f"Lista {filename} criada com sucesso.")
+                # Processa o arquivo .m3u8 linha por linha
+                current_info = None
+                for line in lines:
+                    if line.startswith("#EXTINF"):
+                        current_info = line
+                    elif line.startswith("http") and current_info:
+                        regional_channels.append((current_info, line))
+                        master_channels.append((current_info, line))
+                        current_info = None
+                
+                # Salva o arquivo individual daquela região (ex: pluto_br.m3u)
+                if regional_channels:
+                    filename = f"pluto_{region}.m3u"
+                    with open(filename, "w", encoding="utf-8") as f:
+                        f.write(f'#EXTM3U url-tvg="https://github.com{region}.xml.gz"\n')
+                        for info, stream in regional_channels:
+                            f.write(f"{info}\n{stream}\n")
+                    print(f"Lista criada: {filename} ({len(regional_channels)} canais)")
+            else:
+                print(f"Regiao {region} nao encontrada no servidor (Status {response.status_code})")
+        except Exception as e:
+            print(f"Erro ao processar a regiao {region}: {e}")
 
-def merge_playlists():
-    files = [f for f in os.listdir('.') if f.startswith('pluto_') and f.endswith('.m3u') and f != 'pluto_all.m3u']
-    if not files:
-        print("Nenhum arquivo individual localizado para unificar.")
-        return
-    with open("pluto_all.m3u", "w", encoding="utf-8") as outfile:
-        outfile.write("#EXTM3U\n")
-        for fname in files:
-            with open(fname, "r", encoding="utf-8") as infile:
-                for line in infile:
-                    if line.strip() == "#EXTM3U":
-                        continue
-                    outfile.write(line)
-    print("Lista unificada pluto_all.m3u criada com sucesso.")
+    # Salva o arquivo master unificado com todas as regiões (pluto_all.m3u)
+    if master_channels:
+        with open("pluto_all.m3u", "w", encoding="utf-8") as f:
+            f.write('#EXTM3U url-tvg="https://github.comall.xml.gz"\n')
+            for info, stream in master_channels:
+                f.write(f"{info}\n{stream}\n")
+        print(f"Lista Master criada: pluto_all.m3u ({len(master_channels)} canais no total)")
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "--merge":
-        merge_playlists()
-    else:
-        regioes = ['br', 'us', 'mx']
-        for r in regioes:
-            print(f"Processando regiao: {r}")
-            generate_playlist(r)
+    download_and_split()
 
