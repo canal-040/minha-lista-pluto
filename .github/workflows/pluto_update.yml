@@ -29,18 +29,15 @@ jobs:
       - name: Generate Master Playlist
         run: python pluto_provider.py --merge
 
-      - name: Commit and Push
+      - name: Commit and Push Changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add *.m3u || echo "Nenhum arquivo encontrado"
-          if git diff --cached --quiet; then
-            echo "Nenhuma alteração detectada nas listas."
-          else
-            git commit -m "Update Pluto: New Regions and Improved Session IPs"
-            git pull --rebase origin main
-            git push origin main
-          fi
+          git add *.m3u || echo "Nenhum arquivo .m3u criado."
+          git commit -m "Update Pluto: New Regions and Improved Session IPs" || echo "Nenhuma alteracao para salvar."
+          git pull --rebase origin main || echo "Sem atualizacoes remotas."
+          git push origin main || echo "Sem modificacoes para enviar."
+
 
             git push origin main
           fi
