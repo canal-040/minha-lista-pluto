@@ -27,8 +27,9 @@ jobs:
         run: |
           for region in us ca gb fr de es it mx br ar cl no se dk; do
             export PLUTO_REGION=$region
-            python pluto_provider.py
+            python pluto_provider.py 2>&1 || echo "Erro na região $region"
           done
+
 
       - name: Generate Master Playlist
         run: python pluto_provider.py --merge
