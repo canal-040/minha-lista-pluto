@@ -37,7 +37,8 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add *.m3u
+          # O comando abaixo adiciona os arquivos se eles existirem, sem travar o processo
+          git add *.m3u || echo "Nenhum arquivo m3u encontrado"
           if git diff --cached --quiet; then
             echo "No changes"
           else
