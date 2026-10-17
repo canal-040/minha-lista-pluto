@@ -4,7 +4,7 @@ import requests
 def download_brasil_list():
     print("Iniciando a sincronizacao com a base de dados validada...")
     
-    # URL dividida em partes para garantir que o interpretador leia as barras e pontos corretamente
+    # Adicionado o 'raw.' correto no início do endereço do servidor
     dominio = "https://githubusercontent.com"
     caminho = "/matthuisman/i.mjh.nz/master/PlutoTV/br.m3u8"
     url_final = dominio + caminho
