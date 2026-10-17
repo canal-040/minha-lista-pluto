@@ -29,3 +29,19 @@ jobs:
             export PLUTO_REGION=$region
             python pluto_provider.py
           done
+
+      - name: Generate Master Playlist
+        run: python pluto_provider.py --merge
+
+      - name: Commit and Push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add *.m3u
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update Pluto: New Regions and Improved Session IPs"
+            git pull --rebase origin main
+            git push origin main
+          fi
