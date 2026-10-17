@@ -34,5 +34,5 @@ jobs:
           git commit -m "Update Pluto Playlists" || echo "Sem alteracoes para salvar"
           git pull --rebase origin main || echo "Sem atualizacoes remotas"
           git push origin main || echo "Sem modificacoes para enviar"
- main || echo "Sem atualizacoes remotas"
+
           git push origin main || echo "Sem modificacoes para enviar"
