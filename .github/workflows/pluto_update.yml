@@ -1,14 +1,13 @@
 name: Update Pluto Playlists
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 */6 * * *'
-  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -31,9 +30,8 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
-          git commit -m "Update Pluto Playlists" || echo "Sem alteracoes para salvar"
-          git pull --rebase origin main || echo "Sem atualizacoes remotas"
-          git push origin main || echo "Sem modificacoes para enviar"
-ificacoes para enviar"
+          git commit -m "Update Pluto Playlists" || exit 0
+          git pull --rebase origin main || exit 0
+          git push origin main || exit 0
 
           git push origin main || echo "Sem modificacoes para enviar"
