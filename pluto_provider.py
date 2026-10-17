@@ -2,14 +2,14 @@ import os
 import requests
 
 def download_and_split():
-    # Lista com as siglas de todas as regiões suportadas
-    regions = ['ar', 'br', 'ca', 'cl', 'de', 'dk', 'es', 'fi', 'fr', 'gb', 'it', 'mx', 'no', 'se', 'us']
+    # Inclui 'br' (Brasil) e países latinos onde o canal Novelíssima está presente
+    regions = ['br', 'ar', 'cl', 'mx', 'us', 'es', 'co']
     
     print("Iniciando o download e processamento das listas...")
     master_channels = []
     
     for region in regions:
-        # A URL abaixo foi corrigida com a barra e estrutura certas para acessar o servidor
+        # URL corrigida com as barras nos lugares exatos para não juntar as palavras
         url = f"https://githubusercontent.com{region}.m3u8"
         try:
             response = requests.get(url, timeout=20)
@@ -32,19 +32,19 @@ def download_and_split():
                         f.write(f'#EXTM3U url-tvg="https://github.com{region}.xml.gz"\n')
                         for info, stream in regional_channels:
                             f.write(f"{info}\n{stream}\n")
-                    print(f"Lista criada com sucesso: {filename} ({len(regional_channels)} canais)")
+                    print(f"Lista criada: {filename} ({len(regional_channels)} canais)")
             else:
-                print(f"Regiao {region} retornou status de erro: {response.status_code}")
+                print(f"Regiao {region} nao encontrada (Status {response.status_code})")
         except Exception as e:
             print(f"Erro ao processar a regiao {region}: {e}")
 
-    # Geração da lista master unificada pluto_all.m3u
+    # Salva o arquivo master unificado pluto_all.m3u
     if master_channels:
         with open("pluto_all.m3u", "w", encoding="utf-8") as f:
             f.write('#EXTM3U url-tvg="https://github.comall.xml.gz"\n')
             for info, stream in master_channels:
                 f.write(f"{info}\n{stream}\n")
-        print(f"Lista Master criada com sucesso: pluto_all.m3u ({len(master_channels)} canais no total)")
+        print(f"Lista Master unificada criada com sucesso!")
 
 if __name__ == "__main__":
     download_and_split()
