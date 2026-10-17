@@ -2,13 +2,15 @@ import os
 import requests
 
 def download_brasil_list():
-    print("Iniciando a sincronização com a base de dados validada...")
+    print("Iniciando a sincronizacao com a base de dados validada...")
     
-    # URL da lista brasileira estável com tokens já renovados pela comunidade
-    url = "https://githubusercontent.com"
+    # URL dividida em partes para garantir que o interpretador leia as barras e pontos corretamente
+    dominio = "https://githubusercontent.com"
+    caminho = "/matthuisman/i.mjh.nz/master/PlutoTV/br.m3u8"
+    url_final = dominio + caminho
     
     try:
-        response = requests.get(url, timeout=20)
+        response = requests.get(url_final, timeout=20)
         if response.status_code == 200:
             lines = response.text.splitlines()
             regional_channels = []
@@ -21,7 +23,6 @@ def download_brasil_list():
                     regional_channels.append((current_info, line))
                     current_info = None
             
-            # Grava a lista final pluto_br.m3u contendo o Novelíssima
             if regional_channels:
                 filename = "pluto_br.m3u"
                 with open(filename, "w", encoding="utf-8") as f:
@@ -30,12 +31,12 @@ def download_brasil_list():
                         f.write(f"{info}\n{stream}\n")
                 print(f"Sucesso! Lista criada com {len(regional_channels)} canais brasileiros.")
             else:
-                print("Nenhum canal foi encontrado dentro da resposta obtida.")
+                print("Nenhum canal foi localizado dentro da lista obtida.")
         else:
             print(f"Erro ao acessar base de dados: Status {response.status_code}")
             
     except Exception as e:
-        print(f"Falha crítica ao processar a lista: {e}")
+        print(f"Falha critica ao processar a lista: {e}")
 
 if __name__ == "__main__":
     download_brasil_list()
