@@ -1,63 +1,31 @@
-import json
-import os
-import re
-import sys
-import requests
+name: Update Pluto Playlists
 
-def get_session(region):
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept': 'application/json, text/plain, */*',
-        'Origin': 'https://pluto.tv',
-        'Referer': 'https://pluto.tv'
-    }
-    url = f"https://pluto.tv{region.upper()}&country={region.upper()}"
-    try:
-        response = requests.get(url, headers=headers, timeout=15)
-        if response.status_code == 200:
-            data = response.json()
-            return data.get('session', {}).get('jwt', None)
-    except Exception as e:
-        print(f"Erro ao obter sessao para {region}: {e}")
-    return None
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
-def generate_playlist(region, jwt_token):
-    if not jwt_token:
-        return
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    }
-    url = f"https://pluto.tv{region.upper()}&lang=pt"
-    try:
-        res = requests.get(url, headers=headers, timeout=15)
-        channels = res.json()
-    except Exception as e:
-        print(f"Erro ao buscar canais de {region}: {e}")
-        return
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-    filename = f"pluto_{region.lower()}.m3u"
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write("#EXTM3U\n")
-        for channel in channels:
-            if not channel.get('id') or not channel.get('name'):
-                continue
-            cid = channel['id']
-            name = channel['name']
-            category = channel.get('category', 'Geral').capitalize()
-            images = channel.get('images', [])
-            logo = images.get('path', '') if images else ""
-            
-            f.write(f'#EXTINF:-1 tvg-id="{cid}" tvg-logo="{logo}" group-title="{category}", {name}\n')
-            f.write('#EXTVLCOPT:http-user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"\n')
-            f.write(f"https://pluto.tv{cid}/master.m3u8?appName=web&deviceMake=Chrome&deviceType=web&jwt={jwt_token}\n")
-    print(f"Lista {filename} criada com sucesso.")
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-if __name__ == "__main__":
-    regioes = ['br', 'us', 'mx'] 
-    for r in regioes:
-        token = get_session(r)
-        if token:
-            generate_playlist(r, token)
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-          # teste
-          git push origin main
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Update Regional Playlists
+        run: |
+          for region in us ca gb fr de es it mx br ar cl no se dk; do
+            export PLUTO_REGION=$region
+            python pluto_provider.py
+          done
