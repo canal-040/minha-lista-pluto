@@ -1,7 +1,7 @@
 #EXTM3U
 #EXTINF:-1,Canal 01
-https://stream.ads.ottera.tv/playlist.m3u8?network_id=16288
-#EXTINF:-1,Canal 02
 http://167.249.23.102:8000/play/a0g8/index.m3u8
+#EXTINF:-1,Canal 02
+https://unlimited1-us.dps.live/nettv/nettv.smil/playlist.m3u8
 #EXTINF:-1,Canal 03
 https://stream.ads.ottera.tv/playlist.m3u8?network_id=2153
