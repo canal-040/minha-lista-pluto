@@ -1,4 +1,4 @@
 #EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-STREAM-INF:BANDWIDTH=4500000,RESOLUTION=1920x1080,FRAME-RATE=29.970,CODECS="avc1.640028,mp4a.40.2",
-https://dai.google.com/linear/hls/pa/event/Gmgmn9icSMOL6TAePageWQ/stream/7a9498ec-83ce-4ec3-a97c-92d96f5ea52a:SCL2/master.m3u8
+https://dai.google.com/linear/hls/pa/event/Gmgmn9icSMOL6TAePageWQ/stream/09963f5c-710f-438e-ac6a-dd75ce280ed5:SCL2/variant/0ded2e802add945e46654b5b8226ed9d/bandwidth/3860587.m3u8
