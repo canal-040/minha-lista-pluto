@@ -1,4 +1,4 @@
 #EXTM3U
-#EXT-X-VERSION:3
-#EXT-X-STREAM-INF:BANDWIDTH=4500000,RESOLUTION=1920x1080,FRAME-RATE=29.970,CODECS="avc1.640028,mp4a.40.2",
+#EXTINF:-1,Tlnovelas
+#EXTVLCOPT:http-referrer=https://embed.saohgdassregions.com/
 https://regionales.saohgdassregions.com/playlist/12/index.m3u8?token=046e6827800beeabe8ae52139cce9685fe98af72-a7a478a35975cbbe09d9d97ab2b3eb7b-1795045947-1795024347
